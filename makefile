@@ -3,7 +3,7 @@ NAME=caps2esc
 install: pkg
 
 pkg:
-	makepkg -c -i --noextract
+	makepkg -i --noextract
 
 clean:
 	rm -f src/$(NAME)
