@@ -88,8 +88,10 @@ int eventmap(const struct input_event *input, struct input_event output[]) {
 
     output[0] = *input;
 
-    if (output[0].code == KEY_ESC)
-        output[0].code = KEY_CAPSLOCK;
+    // only allow mappings from Esc to CapsLock passes when CapsLock is being held
+    // i.e. Esc is at its original state, and maps to CapsLock when CapsLock is held.
+    /* if (output[0].code == KEY_ESC) */
+    /*     output[0].code = KEY_CAPSLOCK; */
 
     return 1;
 }

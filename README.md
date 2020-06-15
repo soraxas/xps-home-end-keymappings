@@ -1,5 +1,21 @@
 # caps2esc
 
+## Differences compared to upstream
+
+This fork includes a slight differences compared to upstream, which is that ESC only maps back to capslock when capslock is being held.
+
+The upstream key mappings is as following:
+- CapsLock -> Esc
+- CapsLock *held* + <Key> -> Ctrl
+- Esc -> CapsLock
+
+Works nicely, however, sometimes my instinct is to tap the original Esc, which in-turns trigers CapsLock.
+
+This fork modified such that the mapping from Esc to CapsLock is only active if CapsLock itself is being held (shouldn't have any conflicts with other program that requires this key combindations), i.e.
+- Esc + CapsLock *held* -> CapsLock
+
+------------------------------ 
+
 _Transforming the most useless key **ever** in the most useful one._
 <sub>_For vi/Vim/NeoVim addicts at least_.</sub>
 
