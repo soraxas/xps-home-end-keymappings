@@ -1,25 +1,26 @@
 # Maintainer: Francisco Lopes <francisco@oblita.com>
-pkgname=caps2esc
-pkgver=1.0.4
+pkgname=xps-home-end-keymappings
+pkgver=1.0.0
 pkgrel=3
-pkgdesc="caps2esc: transforming the most useless key ever in the most useful one"
+pkgdesc="xps-home-end-keymappings: make xps's amazing keymapping works in other keyboard"
 arch=('x86_64')
-license=('GPL3')
-url="https://github.com/oblitum/caps2esc"
+license=('MIT')
+url="https://github.com/soraxas/xps-home-end-keymappings"
 depends=('libevdev')
 makedepends=('gcc')
 source=()
 md5sums=()
 
 build() {
-    # gcc caps2esc.c -o caps2esc -I/usr/include/libevdev-1.0 -levdev -ludev
+    # gcc xps-home-end-keymappings.c -o xps-home-end-keymappings -I/usr/include/libevdev-1.0 -levdev -ludev
+    cd src
     make
 }
 
 package() {
     mkdir -p "${pkgdir}/usr/bin"
-    install -m 755 caps2esc "${pkgdir}/usr/bin"
+    install -m 755 xps-home-end-keymappings "${pkgdir}/usr/bin"
 
     mkdir -p "${pkgdir}/usr/lib/systemd/system"
-    install -m 644 "${srcdir}/caps2esc.service" "${pkgdir}/usr/lib/systemd/system"
+    install -m 644 "${srcdir}/xps-home-end-keymappings.service" "${pkgdir}/usr/lib/systemd/system"
 }

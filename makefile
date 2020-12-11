@@ -1,8 +1,9 @@
-NAME=caps2esc
+SRC=src/xps-keymapping.c
+NAME=xps-home-end-keymappings
 
 install: pkg
 
-pkg:
+pkg: $(SRC)
 	makepkg -i --noextract
 
 clean:
