@@ -4,7 +4,7 @@ Wants=systemd-udev-settle.service
 After=systemd-udev-settle.service
 
 [Service]
-ExecStart=/usr/bin/nice -n -20 /usr/bin/xps-keymapping
+ExecStart=/usr/bin/nice -n -20 /usr/bin/xps-keymapping -2
 
 [Install]
 WantedBy=multi-user.target
