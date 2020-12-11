@@ -62,12 +62,12 @@ int eventmap(const struct input_event *input, struct input_event output[]) {
     if (input->type == EV_MSC && input->code == MSC_SCAN)
         return 0;
 
-    if (input->type != EV_KEY) {
+    else if (input->type != EV_KEY) {
         output[0] = *input;
         return 1;
     }
 
-    if (meta_is_down) {
+    else if (meta_is_down) {
         // if (equal(input, &meta_down) || equal(input, &meta_repeat) || input->code == KEY_HOME || input->code == KEY_END) {
         //     return 0;
         // }
@@ -126,7 +126,8 @@ int eventmap(const struct input_event *input, struct input_event output[]) {
             return 2;
         }
     }
-    if (equal(input, &meta_down)) {
+    
+    else if (equal(input, &meta_down)) {
         meta_is_down = 1;
         meta_give_up = 0;
         blocking_mode_2_keycombo = 0;
