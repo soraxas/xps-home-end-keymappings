@@ -1,9 +1,14 @@
-# XPS keymappings for Home and End shortcuts
+# XPS keymappings on Home and End keys
 
-This brings back the wonderful shortcut keys of Home and End button on the left and right arrow keys. The results is `Super+Left` becomes the `Home` key, and `Super+Right` becomes the `End` key.
+This brings the wonderful shortcut keys of Home and End button on the left and right arrow keys, to other keyboard. 
+
+The results is:
+
+- <kbd>LSuper</kbd> + <kbd>Left</kbd> becomes the <kbd>Home</kbd> key
+- <kbd>LSuper</kbd> + <kbd>Right</kbd> becomes the <kbd>End</kbd> key
 ## Dependencies
 
-- [libevdev][]
+- libevdev
 
 ## Building
 
