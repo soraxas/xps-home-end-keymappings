@@ -1,10 +1,10 @@
 [Unit]
-Description=caps2esc
+Description=xps-keymapping
 Wants=systemd-udev-settle.service
 After=systemd-udev-settle.service
 
 [Service]
-ExecStart=/usr/bin/nice -n -20 /usr/bin/caps2esc
+ExecStart=/usr/bin/nice -n -20 /usr/bin/xps-keymapping
 
 [Install]
 WantedBy=multi-user.target

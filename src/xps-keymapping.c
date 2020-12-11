@@ -22,6 +22,21 @@
 
 // clang-format off
 const struct input_event
+meta_up         = {.type = EV_KEY, .code = KEY_LEFTMETA, .value = 0},
+meta_down       = {.type = EV_KEY, .code = KEY_LEFTMETA, .value = 1},
+meta_repeat     = {.type = EV_KEY, .code = KEY_LEFTMETA, .value = 2},
+left_up         = {.type = EV_KEY, .code = KEY_LEFT,     .value = 0},
+left_down       = {.type = EV_KEY, .code = KEY_LEFT,     .value = 1},
+left_repeat     = {.type = EV_KEY, .code = KEY_LEFT,     .value = 2},
+right_up        = {.type = EV_KEY, .code = KEY_RIGHT,    .value = 0},
+right_down      = {.type = EV_KEY, .code = KEY_RIGHT,    .value = 1},
+right_repeat    = {.type = EV_KEY, .code = KEY_RIGHT,    .value = 2},
+
+home_up         = {.type = EV_KEY, .code = KEY_HOME,     .value = 0},
+home_down       = {.type = EV_KEY, .code = KEY_HOME,     .value = 1},
+end_up          = {.type = EV_KEY, .code = KEY_END,      .value = 0},
+end_down        = {.type = EV_KEY, .code = KEY_END,      .value = 1},
+
 esc_up          = {.type = EV_KEY, .code = KEY_ESC,      .value = 0},
 ctrl_up         = {.type = EV_KEY, .code = KEY_LEFTCTRL, .value = 0},
 capslock_up     = {.type = EV_KEY, .code = KEY_CAPSLOCK, .value = 0},
@@ -33,13 +48,16 @@ ctrl_repeat     = {.type = EV_KEY, .code = KEY_LEFTCTRL, .value = 2},
 capslock_repeat = {.type = EV_KEY, .code = KEY_CAPSLOCK, .value = 2};
 // clang-format on
 
+// 0=disable blocking, 1=block super-key, 2=allow super-key but attempt to pass-through
+int blocking_mode = 1;
+
 int equal(const struct input_event *first, const struct input_event *second) {
     return first->type == second->type && first->code == second->code &&
            first->value == second->value;
 }
 
 int eventmap(const struct input_event *input, struct input_event output[]) {
-    static int capslock_is_down = 0, esc_give_up = 0;
+    static int meta_is_down = 0, meta_give_up = 0, blocking_mode_2_keycombo = 0;
 
     if (input->type == EV_MSC && input->code == MSC_SCAN)
         return 0;
@@ -49,50 +67,74 @@ int eventmap(const struct input_event *input, struct input_event output[]) {
         return 1;
     }
 
-    if (capslock_is_down) {
-        if (equal(input, &capslock_down) || equal(input, &capslock_repeat) ||
-            input->code == KEY_LEFTCTRL) {
-            return 0;
-        }
-        if (equal(input, &capslock_up)) {
-            capslock_is_down = 0;
-            if (esc_give_up) {
-                esc_give_up = 0;
-                output[0]   = ctrl_up;
+    if (meta_is_down) {
+        // if (equal(input, &meta_down) || equal(input, &meta_repeat) || input->code == KEY_HOME || input->code == KEY_END) {
+        //     return 0;
+        // }
+        if (equal(input, &meta_up)) {
+            meta_is_down = 0;
+            if (blocking_mode == 0) {
+                output[0] = meta_up;
                 return 1;
             }
-            output[0] = esc_down;
-            output[1] = esc_up;
+            else if (blocking_mode == 1) {
+                if (!meta_give_up) {
+                    output[0] = meta_down;
+                    output[1] = meta_up;
+                    return 2;
+                }
+                return 0;
+            }
+            else if (blocking_mode == 2) {
+                if (blocking_mode_2_keycombo) {
+                    output[0] = meta_up;
+                    return 1;
+                }
+                else if (!meta_give_up) {
+                    output[0] = meta_down;
+                    output[1] = meta_up;
+                    return 2;
+                }
+            }
+            return 0;
+        }
+
+        // block key up
+        else if (equal(input, &left_up) || equal(input, &right_up))
+            return 0;
+
+        else if (equal(input, &left_down) || equal(input, &left_repeat)) {
+            output[0] = home_down;
+            output[1] = home_up;
+            meta_give_up = 1;
             return 2;
         }
 
-        int k = 0;
-
-        if (!esc_give_up && input->value) {
-            esc_give_up = 1;
-            output[k++] = ctrl_down;
+        else if (equal(input, &right_down) || equal(input, &right_repeat))
+        {
+            output[0] = end_down;
+            output[1] = end_up;
+            meta_give_up = 1;
+            return 2;
         }
 
-        output[k++] = *input;
-
-        if (output[k - 1].code == KEY_ESC)
-            output[k - 1].code = KEY_CAPSLOCK;
-
-        return k;
+        if (blocking_mode == 2 && input->code != KEY_LEFTMETA) {
+            // pass through by injecting a super_L press
+            output[0] = meta_down;
+            output[1] = *input;
+            blocking_mode_2_keycombo = 1;
+            return 2;
+        }
     }
-
-    if (equal(input, &capslock_down)) {
-        capslock_is_down = 1;
-        return 0;
+    if (equal(input, &meta_down)) {
+        meta_is_down = 1;
+        meta_give_up = 0;
+        blocking_mode_2_keycombo = 0;
+        if (blocking_mode > 0)
+            return 0;
     }
 
     output[0] = *input;
-
-    // only allow mappings from Esc to CapsLock passes when CapsLock is being held
-    // i.e. Esc is at its original state, and maps to CapsLock when CapsLock is held.
-    /* if (output[0].code == KEY_ESC) */
-    /*     output[0].code = KEY_CAPSLOCK; */
-
     return 1;
 }
 
@@ -117,6 +159,8 @@ int eventmap_loop(const char *devnode) {
     if (libevdev_enable_event_code(dev, EV_KEY, KEY_CAPSLOCK, NULL) < 0)
         goto teardown_grab;
     if (libevdev_enable_event_code(dev, EV_KEY, KEY_LEFTCTRL, NULL) < 0)
+        goto teardown_grab;
+    if (libevdev_enable_event_code(dev, EV_KEY, KEY_LEFTMETA, NULL) < 0)
         goto teardown_grab;
     if (libevdev_disable_event_code(dev, EV_KEY, KEY_WLAN) < 0)
         goto teardown_grab;
@@ -169,16 +213,25 @@ teardown_fd:
     return result;
 }
 
-void eventmap_exec(const char *self_path, const char *devnode) {
+// void eventmap_exec(const char *self_path, const char *devnode) {
+void eventmap_exec(const int argc, const char *argv[], const char *devnode) {
     switch (fork()) {
         case -1:
-            fprintf(stderr, "Fork failed on %s %s (%s)\n", self_path, devnode,
+            fprintf(stderr, "Fork failed on %s %s (%s)\n", argv[0], devnode,
                     strerror(errno));
             break;
         case 0: {
-            char *command[] = {(char *)self_path, (char *)devnode, NULL};
+            char *command[argc + 2];
+            command[0] = (char *) argv[0];  // self path
+            command[1] = (char *) devnode;
+            for (size_t i = 1; i < argc; i++)
+                command[i + 1] = (char *) argv[i];
+
+            command[argc + 1] = NULL;
+
+            // char *command[] = {(char *)argv[0], (char *)devnode, NULL};
             execvp(command[0], command);
-            fprintf(stderr, "Exec failed on %s %s (%s)\n", self_path, devnode,
+            fprintf(stderr, "Exec failed on %s %s (%s)\n", argv[0], devnode,
                     strerror(errno));
         } break;
     }
@@ -236,15 +289,46 @@ void kill_zombies(__attribute__((unused)) int signum) {
 }
 
 int main(int argc, const char *argv[]) {
-    int initial_scan;
+    int initial_scan, i = 1;
+    blocking_mode = 0;
+    // // check for flags:
+    // printf("> %i\n", argc);
+    // for (i = 0; i < argc; ++i)
+    //     printf("%s ", argv[i]);
+    // printf("\n");
 
-    if (argc > 2) {
+    i = 1;
+    int argc_actual = argc;  // argc without the flags
+    while (i < argc) {
+        if (argv[i][0] == '-') {
+            switch (argv[i][1]) {
+                case '0':
+                    blocking_mode = 0;
+                    break;
+                case '1':
+                    blocking_mode = 1;
+                    break;
+                case '2':
+                    blocking_mode = 2;
+                    break;
+                default:
+                    printf("Unknown flags!\n");
+                    return 1;
+            }
+            argc_actual--;
+        }
+        i++;
+    }
+
+    if (argc_actual > 2) {
         fprintf(stderr, "usage: caps2esc [device-path]\n");
         return EXIT_FAILURE;
     }
 
-    if (argc == 2)
+    if (argc_actual == 2) {
+        // printf("Blocking mode: %i\n", blocking_mode);
         return !eventmap_loop(argv[1]);
+    }
 
     struct sigaction sa;
     memset(&sa, 0, sizeof sa);
@@ -271,7 +355,7 @@ int main(int argc, const char *argv[]) {
             udev, udev_list_entry_get_name(dev_list_entry));
         if (device) {
             if (should_grab(device, initial_scan = 1))
-                eventmap_exec(argv[0], udev_device_get_devnode(device));
+                eventmap_exec(argc, argv, udev_device_get_devnode(device));
             udev_device_unref(device);
         }
     }
@@ -286,6 +370,26 @@ int main(int argc, const char *argv[]) {
     udev_monitor_filter_add_match_subsystem_devtype(monitor, "input", NULL);
     udev_monitor_enable_receiving(monitor);
     int fd = udev_monitor_get_fd(monitor);
+    printf("Usage: ./xps-keymapping [-(0|1|2)]"
+           "Keymapping:\n"
+           "  [Super_L] + <- = [Home]\n"
+           "  [Super_L] + -> = [End]\n"
+           "\n"
+           "Note:\n"
+           "  1. Super_L's effect will be cancelled if a keymapping is successfully executed\n"
+           "  2. Key-repeating feature is enabled for the keymapping\n"
+           "\n"
+           "Blocking mode for Super_L:\n"
+           "  -0: Disable blocking (default)\n"
+           "  -1: Robustly intercepts super-key but allows single key-press (other \n"
+           "      superkey keycombos will not work)\n"
+           "  -2: Simulates super-key passthrough by listening to other keypress \n"
+           "      and inject a superkey key-press event when keys other than \n"
+           "      LEFT/RIGHT is pressed\n"
+           "   e.g. Run it as ./xps-keymapping -0 for blockingmode 0, etc.\n"
+           "\n"
+           ">> Current blocking mode: %i\n",
+           blocking_mode);
     for (;;) {
         fd_set fds;
         FD_ZERO(&fds);
@@ -295,7 +399,7 @@ int main(int argc, const char *argv[]) {
             struct udev_device *device = udev_monitor_receive_device(monitor);
             if (device) {
                 if (should_grab(device, initial_scan = 0))
-                    eventmap_exec(argv[0], udev_device_get_devnode(device));
+                    eventmap_exec(argc, argv, udev_device_get_devnode(device));
                 udev_device_unref(device);
             }
         }
