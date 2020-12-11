@@ -33,6 +33,21 @@ If you want to use other blocking mode (mode 2 seems to works pretty well), run 
 sudo nice -n -20 ./xps-keymapping -2
 ```
 
+## Notes:
+
+- <kbd>LSuper</kbd>'s effect will be nullify if a keymapping is successfully executed
+- Key-repeating feature is enabled for the keymapping
+
+## Blocking mode `[0|1|2]` for <kbd>LSuper</kbd>
+
+<kbd>LSuper</kbd>'s effect will needs to be conditionally nullify depending on whether the desire keymapping (i.e. Super+Left/Right) had been successfully executed or not. There are 3 blocking modes implemented:
+
+- -0: Disable blocking (default)
+- -1: Robustly intercepts all <kbd>LSuper</kbd> key-presses, but allows single key-press when <kbd>Left</kbd>/<kbd>Right</kbd> is not being pressed. However, other <kbd>LSuper</kbd> keycombos will not work because the key-press down event will be intercepted by this program.
+- -2: Simulates <kbd>LSuper</kbd> passthrough (it's not an actual passthrough) by first blocking the <kbd>LSuper</kbd>
+ key-press down event, then start listening to other keypress and immediately inject a <kbd>LSuper</kbd> key-press event when keys other than <kbd>Left</kbd>/<kbd>Right</kbd> is pressed.
+
+
 ## How it works
 
 Executing `xps-keymapping` without parameters (with the necessary privileges to access
