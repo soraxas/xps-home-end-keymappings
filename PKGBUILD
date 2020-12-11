@@ -13,14 +13,13 @@ md5sums=()
 
 build() {
     # gcc xps-home-end-keymappings.c -o xps-home-end-keymappings -I/usr/include/libevdev-1.0 -levdev -ludev
-    cd src
     make
 }
 
 package() {
     mkdir -p "${pkgdir}/usr/bin"
-    install -m 755 xps-home-end-keymappings "${pkgdir}/usr/bin"
+    install -m 755 xps-keymapping "${pkgdir}/usr/bin"
 
     mkdir -p "${pkgdir}/usr/lib/systemd/system"
-    install -m 644 "${srcdir}/xps-home-end-keymappings.service" "${pkgdir}/usr/lib/systemd/system"
+    install -m 644 "${srcdir}/xps-keymapping.service" "${pkgdir}/usr/lib/systemd/system"
 }

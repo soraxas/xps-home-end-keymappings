@@ -3,7 +3,7 @@ NAME=xps-home-end-keymappings
 
 install: pkg
 
-pkg: $(SRC)
+pkg: $(SRC) PKGBUILD
 	makepkg -i --noextract
 
 clean:
