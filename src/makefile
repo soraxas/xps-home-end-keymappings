@@ -1,9 +1,16 @@
+.PHONY: with-cap2esc set-cap2esc-flag clean all
+
 NAME=xps-keymapping
+FLAGS=-I/usr/include/libevdev-1.0 -levdev -ludev -Wall -O3
 
 all: $(NAME)
 
+with-cap2esc: FLAGS += -DCAP2ESC
+with-cap2esc: all
+	
+
 $(NAME): $(NAME).c
-	gcc $(NAME).c -o $(NAME) -I/usr/include/libevdev-1.0 -levdev -ludev -Wall -O3
+	gcc $(FLAGS) $(NAME).c -o $(NAME)
 
 clean:
-	rm $(NAME)
+	rm -f $(NAME)

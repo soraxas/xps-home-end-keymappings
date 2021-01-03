@@ -21,31 +21,34 @@
 #include <libevdev/libevdev-uinput.h>
 
 // clang-format off
+const int KEY_UP_VAL = 0;
+const int KEY_DOWN_VAL = 1;
+const int KEY_REPEAT_VAL = 2;
 const struct input_event
-meta_up         = {.type = EV_KEY, .code = KEY_LEFTMETA, .value = 0},
-meta_down       = {.type = EV_KEY, .code = KEY_LEFTMETA, .value = 1},
-meta_repeat     = {.type = EV_KEY, .code = KEY_LEFTMETA, .value = 2},
-left_up         = {.type = EV_KEY, .code = KEY_LEFT,     .value = 0},
-left_down       = {.type = EV_KEY, .code = KEY_LEFT,     .value = 1},
-left_repeat     = {.type = EV_KEY, .code = KEY_LEFT,     .value = 2},
-right_up        = {.type = EV_KEY, .code = KEY_RIGHT,    .value = 0},
-right_down      = {.type = EV_KEY, .code = KEY_RIGHT,    .value = 1},
-right_repeat    = {.type = EV_KEY, .code = KEY_RIGHT,    .value = 2},
+meta_up         = {.type = EV_KEY, .code = KEY_LEFTMETA, .value = KEY_UP_VAL},
+meta_down       = {.type = EV_KEY, .code = KEY_LEFTMETA, .value = KEY_DOWN_VAL},
+meta_repeat     = {.type = EV_KEY, .code = KEY_LEFTMETA, .value = KEY_REPEAT_VAL},
+left_up         = {.type = EV_KEY, .code = KEY_LEFT,     .value = KEY_UP_VAL},
+left_down       = {.type = EV_KEY, .code = KEY_LEFT,     .value = KEY_DOWN_VAL},
+left_repeat     = {.type = EV_KEY, .code = KEY_LEFT,     .value = KEY_REPEAT_VAL},
+right_up        = {.type = EV_KEY, .code = KEY_RIGHT,    .value = KEY_UP_VAL},
+right_down      = {.type = EV_KEY, .code = KEY_RIGHT,    .value = KEY_DOWN_VAL},
+right_repeat    = {.type = EV_KEY, .code = KEY_RIGHT,    .value = KEY_REPEAT_VAL},
 
-home_up         = {.type = EV_KEY, .code = KEY_HOME,     .value = 0},
-home_down       = {.type = EV_KEY, .code = KEY_HOME,     .value = 1},
-end_up          = {.type = EV_KEY, .code = KEY_END,      .value = 0},
-end_down        = {.type = EV_KEY, .code = KEY_END,      .value = 1},
+home_up         = {.type = EV_KEY, .code = KEY_HOME,     .value = KEY_UP_VAL},
+home_down       = {.type = EV_KEY, .code = KEY_HOME,     .value = KEY_DOWN_VAL},
+end_up          = {.type = EV_KEY, .code = KEY_END,      .value = KEY_UP_VAL},
+end_down        = {.type = EV_KEY, .code = KEY_END,      .value = KEY_DOWN_VAL},
 
-esc_up          = {.type = EV_KEY, .code = KEY_ESC,      .value = 0},
-ctrl_up         = {.type = EV_KEY, .code = KEY_LEFTCTRL, .value = 0},
-capslock_up     = {.type = EV_KEY, .code = KEY_CAPSLOCK, .value = 0},
-esc_down        = {.type = EV_KEY, .code = KEY_ESC,      .value = 1},
-ctrl_down       = {.type = EV_KEY, .code = KEY_LEFTCTRL, .value = 1},
-capslock_down   = {.type = EV_KEY, .code = KEY_CAPSLOCK, .value = 1},
-esc_repeat      = {.type = EV_KEY, .code = KEY_ESC,      .value = 2},
-ctrl_repeat     = {.type = EV_KEY, .code = KEY_LEFTCTRL, .value = 2},
-capslock_repeat = {.type = EV_KEY, .code = KEY_CAPSLOCK, .value = 2};
+esc_up          = {.type = EV_KEY, .code = KEY_ESC,      .value = KEY_UP_VAL},
+ctrl_up         = {.type = EV_KEY, .code = KEY_LEFTCTRL, .value = KEY_UP_VAL},
+capslock_up     = {.type = EV_KEY, .code = KEY_CAPSLOCK, .value = KEY_UP_VAL},
+esc_down        = {.type = EV_KEY, .code = KEY_ESC,      .value = KEY_DOWN_VAL},
+ctrl_down       = {.type = EV_KEY, .code = KEY_LEFTCTRL, .value = KEY_DOWN_VAL},
+capslock_down   = {.type = EV_KEY, .code = KEY_CAPSLOCK, .value = KEY_DOWN_VAL},
+esc_repeat      = {.type = EV_KEY, .code = KEY_ESC,      .value = KEY_REPEAT_VAL},
+ctrl_repeat     = {.type = EV_KEY, .code = KEY_LEFTCTRL, .value = KEY_REPEAT_VAL},
+capslock_repeat = {.type = EV_KEY, .code = KEY_CAPSLOCK, .value = KEY_REPEAT_VAL};
 // clang-format on
 
 // 0=disable blocking, 1=block super-key, 2=allow super-key but attempt to pass-through
@@ -59,6 +62,10 @@ int equal(const struct input_event *first, const struct input_event *second) {
 int eventmap(const struct input_event *input, struct input_event output[]) {
     static int meta_is_down = 0, meta_give_up = 0, blocking_mode_2_keycombo = 0;
 
+#ifdef CAP2ESC
+    static int capslock_is_down = 0, esc_give_up = 0;
+#endif
+
     if (input->type == EV_MSC && input->code == MSC_SCAN)
         return 0;
 
@@ -66,6 +73,62 @@ int eventmap(const struct input_event *input, struct input_event output[]) {
         output[0] = *input;
         return 1;
     }
+
+#ifdef CAP2ESC
+    // turn capslock to esc
+    else if (capslock_is_down)
+    {
+        if (input->code == KEY_CAPSLOCK)
+        {
+            // see whether esc had been given up (by treating it as ctrl)
+            // if not, then return a esc down&up sequence.
+            if (input->value == KEY_UP_VAL)
+            {
+                capslock_is_down = 0;
+                if (esc_give_up)
+                {
+                    esc_give_up = 0;
+                    output[0] = ctrl_up;
+                    return 1;
+                }
+                output[0] = esc_down;
+                output[1] = esc_up;
+                return 2;
+            }
+            // ignore KEY_DOWN and KEY_REPEAT event as flag is already set to down
+            return 0;
+        }
+        else if (input->code == KEY_LEFTCTRL)
+            // ignore this as CAPS held will triggers leftctrl key event
+            return 0;
+        else if (input->code == KEY_ESC)
+        {
+            // convert CAPSLOCK + ESC to actual CAPSLOCK signal
+            output[0] = *input;
+            output[0].code = KEY_CAPSLOCK;
+            esc_give_up = 1;
+            return 1;
+        }
+
+        int k = 0;
+
+        if (!esc_give_up && input->value)
+        {
+            // treat this as helding ctrl
+            esc_give_up = 1;
+            output[k++] = ctrl_down;
+        }
+
+        output[k++] = *input;
+        return k;
+    }
+
+    else if (input->code == KEY_CAPSLOCK && input->value == KEY_DOWN_VAL)
+    {
+        capslock_is_down = 1;
+        return 0;
+    }
+#endif
 
     else if (meta_is_down) {
         // if (equal(input, &meta_down) || equal(input, &meta_repeat) || input->code == KEY_HOME || input->code == KEY_END) {
