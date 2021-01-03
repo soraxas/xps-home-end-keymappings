@@ -166,7 +166,8 @@ int eventmap(const struct input_event *input, struct input_event output[]) {
         else if (equal(input, &left_up) || equal(input, &right_up))
             return 0;
 
-        else if (equal(input, &left_down) || equal(input, &left_repeat)) {
+        else if (equal(input, &left_down) || equal(input, &left_repeat))
+        {
             output[0] = home_down;
             output[1] = home_up;
             meta_give_up = 1;
@@ -182,11 +183,13 @@ int eventmap(const struct input_event *input, struct input_event output[]) {
         }
 
         if (blocking_mode == 2 && input->code != KEY_LEFTMETA) {
-            // pass through by injecting a super_L press
-            output[0] = meta_down;
-            output[1] = *input;
-            blocking_mode_2_keycombo = 1;
-            return 2;
+            if (input->code != KEY_LEFTSHIFT) {  // ignore shift as it's a modifier key
+                // pass through by injecting a super_L press
+                output[0] = meta_down;
+                output[1] = *input;
+                blocking_mode_2_keycombo = 1;
+                return 2;
+            }
         }
     }
     
