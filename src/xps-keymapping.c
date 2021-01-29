@@ -20,46 +20,32 @@
 #include <libevdev/libevdev.h>
 #include <libevdev/libevdev-uinput.h>
 
-// clang-format off
-const int STATE_KEY_UP = 0;
-const int STATE_KEY_DOWN = 1;
-const int STATE_KEY_REPEAT = 2;
-const struct input_event
-meta_up         = {.type = EV_KEY, .code = KEY_LEFTMETA, .value = STATE_KEY_UP},
-meta_down       = {.type = EV_KEY, .code = KEY_LEFTMETA, .value = STATE_KEY_DOWN},
-meta_repeat     = {.type = EV_KEY, .code = KEY_LEFTMETA, .value = STATE_KEY_REPEAT},
-left_up         = {.type = EV_KEY, .code = KEY_LEFT,     .value = STATE_KEY_UP},
-left_down       = {.type = EV_KEY, .code = KEY_LEFT,     .value = STATE_KEY_DOWN},
-left_repeat     = {.type = EV_KEY, .code = KEY_LEFT,     .value = STATE_KEY_REPEAT},
-right_up        = {.type = EV_KEY, .code = KEY_RIGHT,    .value = STATE_KEY_UP},
-right_down      = {.type = EV_KEY, .code = KEY_RIGHT,    .value = STATE_KEY_DOWN},
-right_repeat    = {.type = EV_KEY, .code = KEY_RIGHT,    .value = STATE_KEY_REPEAT},
-up_up           = {.type = EV_KEY, .code = KEY_UP,       .value = STATE_KEY_UP},
-up_down         = {.type = EV_KEY, .code = KEY_UP,       .value = STATE_KEY_DOWN},
-up_repeat       = {.type = EV_KEY, .code = KEY_UP,       .value = STATE_KEY_REPEAT},
-down_up         = {.type = EV_KEY, .code = KEY_DOWN,     .value = STATE_KEY_UP},
-down_down       = {.type = EV_KEY, .code = KEY_DOWN,     .value = STATE_KEY_DOWN},
-down_repeat     = {.type = EV_KEY, .code = KEY_DOWN,     .value = STATE_KEY_REPEAT},
+#define STATE_KEY_UP 0
+#define STATE_KEY_DOWN 1
+#define STATE_KEY_REPEAT 2
 
-home_up         = {.type = EV_KEY, .code = KEY_HOME,     .value = STATE_KEY_UP},
-home_down       = {.type = EV_KEY, .code = KEY_HOME,     .value = STATE_KEY_DOWN},
-end_up          = {.type = EV_KEY, .code = KEY_END,      .value = STATE_KEY_UP},
-end_down        = {.type = EV_KEY, .code = KEY_END,      .value = STATE_KEY_DOWN},
-pgup_up         = {.type = EV_KEY, .code = KEY_PAGEUP,   .value = STATE_KEY_UP},
-pgup_down       = {.type = EV_KEY, .code = KEY_PAGEUP,   .value = STATE_KEY_DOWN},
-pgdown_up       = {.type = EV_KEY, .code = KEY_PAGEDOWN, .value = STATE_KEY_UP},
-pgdown_down     = {.type = EV_KEY, .code = KEY_PAGEDOWN, .value = STATE_KEY_DOWN},
+// macro that helps to declare easy-to-use input_event struct
+#define DECLARE_INPUT_EVENT_STRUCT_FOR(declare_name, keycode) \
+    const struct input_event declare_name##_up     = {.type = EV_KEY, .code = keycode, .value = STATE_KEY_UP};\
+    const struct input_event declare_name##_down   = {.type = EV_KEY, .code = keycode, .value = STATE_KEY_DOWN};\
+    const struct input_event declare_name##_repeat = {.type = EV_KEY, .code = keycode, .value = STATE_KEY_REPEAT}
 
-esc_up          = {.type = EV_KEY, .code = KEY_ESC,      .value = STATE_KEY_UP},
-ctrl_up         = {.type = EV_KEY, .code = KEY_LEFTCTRL, .value = STATE_KEY_UP},
-capslock_up     = {.type = EV_KEY, .code = KEY_CAPSLOCK, .value = STATE_KEY_UP},
-esc_down        = {.type = EV_KEY, .code = KEY_ESC,      .value = STATE_KEY_DOWN},
-ctrl_down       = {.type = EV_KEY, .code = KEY_LEFTCTRL, .value = STATE_KEY_DOWN},
-capslock_down   = {.type = EV_KEY, .code = KEY_CAPSLOCK, .value = STATE_KEY_DOWN},
-esc_repeat      = {.type = EV_KEY, .code = KEY_ESC,      .value = STATE_KEY_REPEAT},
-ctrl_repeat     = {.type = EV_KEY, .code = KEY_LEFTCTRL, .value = STATE_KEY_REPEAT},
-capslock_repeat = {.type = EV_KEY, .code = KEY_CAPSLOCK, .value = STATE_KEY_REPEAT};
-// clang-format on
+// given a token xxx, the following macros declare XXX_{up,down,repeat} with corresponding keycode
+// DECLARE_INPUT_EVENT_STRUCT_FOR(xxx, KEYCODE);
+DECLARE_INPUT_EVENT_STRUCT_FOR(meta, KEY_LEFTMETA);
+DECLARE_INPUT_EVENT_STRUCT_FOR(left, KEY_LEFT);
+DECLARE_INPUT_EVENT_STRUCT_FOR(right, KEY_RIGHT);
+DECLARE_INPUT_EVENT_STRUCT_FOR(up, KEY_UP);
+DECLARE_INPUT_EVENT_STRUCT_FOR(down, KEY_DOWN);
+
+DECLARE_INPUT_EVENT_STRUCT_FOR(home, KEY_HOME);
+DECLARE_INPUT_EVENT_STRUCT_FOR(end, KEY_END);
+DECLARE_INPUT_EVENT_STRUCT_FOR(pgup, KEY_PAGEUP);
+DECLARE_INPUT_EVENT_STRUCT_FOR(pgdown, KEY_PAGEDOWN);
+
+DECLARE_INPUT_EVENT_STRUCT_FOR(esc, KEY_ESC);
+DECLARE_INPUT_EVENT_STRUCT_FOR(ctrl, KEY_LEFTCTRL);
+DECLARE_INPUT_EVENT_STRUCT_FOR(capslock, KEY_CAPSLOCK);
 
 // 0=disable blocking, 1=block super-key, 2=allow super-key but attempt to pass-through
 int blocking_mode = 1;
