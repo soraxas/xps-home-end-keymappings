@@ -1,5 +1,8 @@
 # XPS keymappings on Home and End keys
 
+[![AUR-git Version](https://img.shields.io/aur/version/xps-home-end-keymappings-git.svg?label=aur-git)](https://aur.archlinux.org/packages/xps-home-end-keymappings-git)
+
+
 This brings the wonderful shortcut keys of Home and End button on the left and right arrow keys, to other keyboard. 
 
 The results is:
@@ -10,6 +13,12 @@ The results is:
 
 - libevdev
 
+## Install (AUR)
+
+```sh
+yay -S xps-home-end-keymappings-git
+
+```
 ## Building
 
 ```sh
