@@ -21,43 +21,53 @@
 #include <libevdev/libevdev-uinput.h>
 
 // clang-format off
-const int KEY_UP_VAL = 0;
-const int KEY_DOWN_VAL = 1;
-const int KEY_REPEAT_VAL = 2;
+const int STATE_KEY_UP = 0;
+const int STATE_KEY_DOWN = 1;
+const int STATE_KEY_REPEAT = 2;
 const struct input_event
-meta_up         = {.type = EV_KEY, .code = KEY_LEFTMETA, .value = KEY_UP_VAL},
-meta_down       = {.type = EV_KEY, .code = KEY_LEFTMETA, .value = KEY_DOWN_VAL},
-meta_repeat     = {.type = EV_KEY, .code = KEY_LEFTMETA, .value = KEY_REPEAT_VAL},
-left_up         = {.type = EV_KEY, .code = KEY_LEFT,     .value = KEY_UP_VAL},
-left_down       = {.type = EV_KEY, .code = KEY_LEFT,     .value = KEY_DOWN_VAL},
-left_repeat     = {.type = EV_KEY, .code = KEY_LEFT,     .value = KEY_REPEAT_VAL},
-right_up        = {.type = EV_KEY, .code = KEY_RIGHT,    .value = KEY_UP_VAL},
-right_down      = {.type = EV_KEY, .code = KEY_RIGHT,    .value = KEY_DOWN_VAL},
-right_repeat    = {.type = EV_KEY, .code = KEY_RIGHT,    .value = KEY_REPEAT_VAL},
+meta_up         = {.type = EV_KEY, .code = KEY_LEFTMETA, .value = STATE_KEY_UP},
+meta_down       = {.type = EV_KEY, .code = KEY_LEFTMETA, .value = STATE_KEY_DOWN},
+meta_repeat     = {.type = EV_KEY, .code = KEY_LEFTMETA, .value = STATE_KEY_REPEAT},
+left_up         = {.type = EV_KEY, .code = KEY_LEFT,     .value = STATE_KEY_UP},
+left_down       = {.type = EV_KEY, .code = KEY_LEFT,     .value = STATE_KEY_DOWN},
+left_repeat     = {.type = EV_KEY, .code = KEY_LEFT,     .value = STATE_KEY_REPEAT},
+right_up        = {.type = EV_KEY, .code = KEY_RIGHT,    .value = STATE_KEY_UP},
+right_down      = {.type = EV_KEY, .code = KEY_RIGHT,    .value = STATE_KEY_DOWN},
+right_repeat    = {.type = EV_KEY, .code = KEY_RIGHT,    .value = STATE_KEY_REPEAT},
+up_up           = {.type = EV_KEY, .code = KEY_UP,       .value = STATE_KEY_UP},
+up_down         = {.type = EV_KEY, .code = KEY_UP,       .value = STATE_KEY_DOWN},
+up_repeat       = {.type = EV_KEY, .code = KEY_UP,       .value = STATE_KEY_REPEAT},
+down_up         = {.type = EV_KEY, .code = KEY_DOWN,     .value = STATE_KEY_UP},
+down_down       = {.type = EV_KEY, .code = KEY_DOWN,     .value = STATE_KEY_DOWN},
+down_repeat     = {.type = EV_KEY, .code = KEY_DOWN,     .value = STATE_KEY_REPEAT},
 
-home_up         = {.type = EV_KEY, .code = KEY_HOME,     .value = KEY_UP_VAL},
-home_down       = {.type = EV_KEY, .code = KEY_HOME,     .value = KEY_DOWN_VAL},
-end_up          = {.type = EV_KEY, .code = KEY_END,      .value = KEY_UP_VAL},
-end_down        = {.type = EV_KEY, .code = KEY_END,      .value = KEY_DOWN_VAL},
+home_up         = {.type = EV_KEY, .code = KEY_HOME,     .value = STATE_KEY_UP},
+home_down       = {.type = EV_KEY, .code = KEY_HOME,     .value = STATE_KEY_DOWN},
+end_up          = {.type = EV_KEY, .code = KEY_END,      .value = STATE_KEY_UP},
+end_down        = {.type = EV_KEY, .code = KEY_END,      .value = STATE_KEY_DOWN},
+pgup_up         = {.type = EV_KEY, .code = KEY_PAGEUP,   .value = STATE_KEY_UP},
+pgup_down       = {.type = EV_KEY, .code = KEY_PAGEUP,   .value = STATE_KEY_DOWN},
+pgdown_up       = {.type = EV_KEY, .code = KEY_PAGEDOWN, .value = STATE_KEY_UP},
+pgdown_down     = {.type = EV_KEY, .code = KEY_PAGEDOWN, .value = STATE_KEY_DOWN},
 
-esc_up          = {.type = EV_KEY, .code = KEY_ESC,      .value = KEY_UP_VAL},
-ctrl_up         = {.type = EV_KEY, .code = KEY_LEFTCTRL, .value = KEY_UP_VAL},
-capslock_up     = {.type = EV_KEY, .code = KEY_CAPSLOCK, .value = KEY_UP_VAL},
-esc_down        = {.type = EV_KEY, .code = KEY_ESC,      .value = KEY_DOWN_VAL},
-ctrl_down       = {.type = EV_KEY, .code = KEY_LEFTCTRL, .value = KEY_DOWN_VAL},
-capslock_down   = {.type = EV_KEY, .code = KEY_CAPSLOCK, .value = KEY_DOWN_VAL},
-esc_repeat      = {.type = EV_KEY, .code = KEY_ESC,      .value = KEY_REPEAT_VAL},
-ctrl_repeat     = {.type = EV_KEY, .code = KEY_LEFTCTRL, .value = KEY_REPEAT_VAL},
-capslock_repeat = {.type = EV_KEY, .code = KEY_CAPSLOCK, .value = KEY_REPEAT_VAL};
+esc_up          = {.type = EV_KEY, .code = KEY_ESC,      .value = STATE_KEY_UP},
+ctrl_up         = {.type = EV_KEY, .code = KEY_LEFTCTRL, .value = STATE_KEY_UP},
+capslock_up     = {.type = EV_KEY, .code = KEY_CAPSLOCK, .value = STATE_KEY_UP},
+esc_down        = {.type = EV_KEY, .code = KEY_ESC,      .value = STATE_KEY_DOWN},
+ctrl_down       = {.type = EV_KEY, .code = KEY_LEFTCTRL, .value = STATE_KEY_DOWN},
+capslock_down   = {.type = EV_KEY, .code = KEY_CAPSLOCK, .value = STATE_KEY_DOWN},
+esc_repeat      = {.type = EV_KEY, .code = KEY_ESC,      .value = STATE_KEY_REPEAT},
+ctrl_repeat     = {.type = EV_KEY, .code = KEY_LEFTCTRL, .value = STATE_KEY_REPEAT},
+capslock_repeat = {.type = EV_KEY, .code = KEY_CAPSLOCK, .value = STATE_KEY_REPEAT};
 // clang-format on
 
 // 0=disable blocking, 1=block super-key, 2=allow super-key but attempt to pass-through
 int blocking_mode = 1;
 
-int equal(const struct input_event *first, const struct input_event *second) {
-    return first->type == second->type && first->code == second->code &&
-           first->value == second->value;
-}
+
+#define eq_keyup(input_event, keycode) (((input_event)->code == (keycode)) && ((input_event)->value == (STATE_KEY_UP)))
+#define eq_keydown(input_event, keycode) (((input_event)->code == (keycode)) && ((input_event)->value == (STATE_KEY_DOWN)))
+#define eq_keyrepeat(input_event, keycode) (((input_event)->code == (keycode)) && ((input_event)->value == (STATE_KEY_REPEAT)))
 
 int eventmap(const struct input_event *input, struct input_event output[]) {
     static int meta_is_down = 0, meta_give_up = 0, blocking_mode_2_keycombo = 0;
@@ -82,7 +92,7 @@ int eventmap(const struct input_event *input, struct input_event output[]) {
         {
             // see whether esc had been given up (by treating it as ctrl)
             // if not, then return a esc down&up sequence.
-            if (input->value == KEY_UP_VAL)
+            if (input->value == STATE_KEY_UP)
             {
                 capslock_is_down = 0;
                 if (esc_give_up)
@@ -123,7 +133,7 @@ int eventmap(const struct input_event *input, struct input_event output[]) {
         return k;
     }
 
-    else if (input->code == KEY_CAPSLOCK && input->value == KEY_DOWN_VAL)
+    else if (input->code == KEY_CAPSLOCK && input->value == STATE_KEY_DOWN)
     {
         capslock_is_down = 1;
         return 0;
@@ -131,42 +141,45 @@ int eventmap(const struct input_event *input, struct input_event output[]) {
 #endif
 
     else if (meta_is_down) {
-        // if (equal(input, &meta_down) || equal(input, &meta_repeat) || input->code == KEY_HOME || input->code == KEY_END) {
-        //     return 0;
-        // }
-        if (equal(input, &meta_up)) {
+        if (eq_keyup(input, KEY_LEFTMETA))
+        {
             meta_is_down = 0;
-            if (blocking_mode == 0) {
-                output[0] = meta_up;
-                return 1;
-            }
-            else if (blocking_mode == 1) {
-                if (!meta_give_up) {
-                    output[0] = meta_down;
-                    output[1] = meta_up;
-                    return 2;
-                }
-                return 0;
-            }
-            else if (blocking_mode == 2) {
-                if (blocking_mode_2_keycombo) {
+            switch (blocking_mode)
+            {
+                case 0:
                     output[0] = meta_up;
                     return 1;
-                }
-                else if (!meta_give_up) {
-                    output[0] = meta_down;
-                    output[1] = meta_up;
-                    return 2;
-                }
+
+                case 1:
+                    if (!meta_give_up) {
+                        output[0] = meta_down;
+                        output[1] = meta_up;
+                        return 2;
+                    }
+                    return 0;
+
+                case 2:
+                    if (blocking_mode_2_keycombo) {
+                        output[0] = meta_up;
+                        return 1;
+                    }
+                    else if (!meta_give_up) {
+                        output[0] = meta_down;
+                        output[1] = meta_up;
+                        return 2;
+                    } 
+                    // fall to default
+
+                default:
+                    return 0;
             }
-            return 0;
         }
 
-        // block key up
-        else if (equal(input, &left_up) || equal(input, &right_up))
+        // block key up (these had been emitted during key down)
+        else if (eq_keyup(input, KEY_LEFT) || eq_keyup(input, KEY_RIGHT) || eq_keyup(input, KEY_UP) || eq_keyup(input, KEY_DOWN))
             return 0;
 
-        else if (equal(input, &left_down) || equal(input, &left_repeat))
+        else if (eq_keydown(input, KEY_LEFT) || eq_keyrepeat(input, KEY_LEFT))
         {
             output[0] = home_down;
             output[1] = home_up;
@@ -174,7 +187,7 @@ int eventmap(const struct input_event *input, struct input_event output[]) {
             return 2;
         }
 
-        else if (equal(input, &right_down) || equal(input, &right_repeat))
+        else if (eq_keydown(input, KEY_RIGHT) || eq_keyrepeat(input, KEY_RIGHT))
         {
             output[0] = end_down;
             output[1] = end_up;
@@ -182,18 +195,44 @@ int eventmap(const struct input_event *input, struct input_event output[]) {
             return 2;
         }
 
+        else if (eq_keydown(input, KEY_UP) || eq_keyrepeat(input, KEY_UP))
+        {
+            output[0] = pgup_down;
+            output[1] = pgup_up;
+            meta_give_up = 1;
+            return 2;
+        }
+
+        else if (eq_keydown(input, KEY_DOWN) || eq_keyrepeat(input, KEY_DOWN))
+        {
+            output[0] = pgdown_down;
+            output[1] = pgdown_up;
+            meta_give_up = 1;
+            return 2;
+        }
+
         if (blocking_mode == 2 && input->code != KEY_LEFTMETA) {
-            if (input->code != KEY_LEFTSHIFT) {  // ignore shift as it's a modifier key
-                // pass through by injecting a super_L press
-                output[0] = meta_down;
-                output[1] = *input;
-                blocking_mode_2_keycombo = 1;
-                return 2;
+            // if modifier key is pressed, not inject meta yet (only react to non-modifier key)
+            switch (input->code)
+            {
+                case KEY_LEFTSHIFT:
+                case KEY_RIGHTSHIFT:
+                case KEY_LEFTALT:
+                case KEY_RIGHTALT:
+                case KEY_LEFTMETA:
+                case KEY_RIGHTMETA:
+                    break;
+                default:
+                    // pass through by injecting a super_L press
+                    output[0] = meta_down;
+                    output[1] = *input;
+                    blocking_mode_2_keycombo = 1;
+                    return 2;
             }
         }
     }
     
-    else if (equal(input, &meta_down)) {
+    else if (eq_keydown(input, KEY_LEFTMETA)) {
         meta_is_down = 1;
         meta_give_up = 0;
         blocking_mode_2_keycombo = 0;
@@ -439,8 +478,10 @@ int main(int argc, const char *argv[]) {
     int fd = udev_monitor_get_fd(monitor);
     printf("Usage: ./xps-keymapping [-(0|1|2)]"
            "Keymapping:\n"
-           "  [Super_L] + <- = [Home]\n"
-           "  [Super_L] + -> = [End]\n"
+           "  [Super_L] + LEFT  = [Home]\n"
+           "  [Super_L] + RIGHT = [End]\n"
+           "  [Super_L] + UP    = [PgUp]\n"
+           "  [Super_L] + DOWN  = [PgDown]\n"
            "\n"
            "Note:\n"
            "  1. Super_L's effect will be cancelled if a keymapping is successfully executed\n"
