@@ -64,8 +64,8 @@ int blocking_mode = 1;
 #define eq_keydown_or_repeat(input_event, keycode) (is_keycode(input_event, keycode) && is_keydown_or_repeat(input_event))
 
 int eventmap(const struct input_event *input, struct input_event output[]) {
-    // blocking_mode_2_keycombo is to keep track of whether a meta key combo had been injected
-    static int meta_is_down = 0, meta_give_up = 0, blocking_mode_2_keycombo = 0;
+    // blocking_mode2_in_keycombo is to keep track of whether a meta key combo had been injected
+    static int meta_is_down = 0, meta_give_up = 0, blocking_mode2_in_keycombo = 0;
 
 #ifdef CAP2ESC
     static int capslock_is_down = 0, esc_give_up = 0;
@@ -155,8 +155,9 @@ int eventmap(const struct input_event *input, struct input_event output[]) {
                 return 0;
 
             case 2:
-                if (blocking_mode_2_keycombo) {
+                if (blocking_mode2_in_keycombo) {
                     output[0] = meta_up;
+                    blocking_mode2_in_keycombo = 0;
                     return 1;
                 }
                 else if (!meta_give_up) {
@@ -178,39 +179,40 @@ int eventmap(const struct input_event *input, struct input_event output[]) {
         case KEY_DOWN:
             if (is_keyup(input))
                 return 0;
-            if (blocking_mode_2_keycombo) {
-                // if block_mode 2's keycombo had been activated, stop performing
-                // key mapping because a meta key had been injected.
-                // user will need to release meta key and press again to once again activate keymappings.
-                return 0;
-            }
             if (is_keydown_or_repeat(input)){
+                // if block_mode 2's keycombo had been activated, inject a release event of the meta key
+                short k = 0;
+                if (blocking_mode2_in_keycombo) {
+                    output[k++] = meta_up;
+                    blocking_mode2_in_keycombo = 0;
+                }
                 switch (input->code)
                 {
                 case KEY_LEFT:
-                    output[0] = home_down;
-                    output[1] = home_up;
+                    output[k++] = home_down;
+                    output[k++] = home_up;
                     break;
                 case KEY_RIGHT:
-                    output[0] = end_down;
-                    output[1] = end_up;
+                    output[k++] = end_down;
+                    output[k++] = end_up;
                     break;
                 case KEY_UP:
-                    output[0] = pgup_down;
-                    output[1] = pgup_up;
+                    output[k++] = pgup_down;
+                    output[k++] = pgup_up;
                     break;
                 case KEY_DOWN:
-                    output[0] = pgdown_down;
-                    output[1] = pgdown_up;
+                    output[k++] = pgdown_down;
+                    output[k++] = pgdown_up;
                     break;
                 }
                 meta_give_up = 1;
-                return 2;
+                return k;
             }
         }
 
         if (blocking_mode == 2 && !is_keycode(input, KEY_LEFTMETA)) {
             // if modifier key is pressed, not inject meta yet (only react to non-modifier key)
+            short k = 0;
             switch (input->code)
             {
                 case KEY_LEFTSHIFT:
@@ -224,10 +226,11 @@ int eventmap(const struct input_event *input, struct input_event output[]) {
                     break;
                 default:
                     // pass through by injecting a super_L press
-                    output[0] = meta_down;
-                    output[1] = *input;
-                    blocking_mode_2_keycombo = 1;
-                    return 2;
+                    if (blocking_mode2_in_keycombo == 0) // only inject when necessary
+                        output[k++] = meta_down;
+                    output[k++] = *input;
+                    blocking_mode2_in_keycombo = 1;
+                    return k;
             }
         }
     }
@@ -235,7 +238,7 @@ int eventmap(const struct input_event *input, struct input_event output[]) {
     else if (eq_keydown(input, KEY_LEFTMETA)) {
         meta_is_down = 1;
         meta_give_up = 0;
-        blocking_mode_2_keycombo = 0;
+        blocking_mode2_in_keycombo = 0;
         if (blocking_mode > 0)
             return 0;
     }
