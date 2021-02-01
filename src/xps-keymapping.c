@@ -83,49 +83,49 @@ int eventmap(const struct input_event *input, struct input_event output[]) {
     // turn capslock to esc
     else if (capslock_is_down)
     {
-        if (is_keycode(input, KEY_CAPSLOCK))
+        switch (input->code)
         {
+        case KEY_CAPSLOCK:
+            // ignore KEY_DOWN and KEY_REPEAT event as flag has already been set to down
+            if (!is_keyup(input))
+                return 0;
             // see whether esc had been given up (by treating it as ctrl)
             // if not, then return a esc down&up sequence.
-            if (is_keyup(input))
+            capslock_is_down = 0;
+            if (esc_give_up)
             {
-                capslock_is_down = 0;
-                if (esc_give_up)
-                {
-                    esc_give_up = 0;
-                    output[0] = ctrl_up;
-                    return 1;
-                }
-                output[0] = esc_down;
-                output[1] = esc_up;
-                return 2;
+                esc_give_up = 0;
+                output[0] = ctrl_up;
+                return 1;
             }
-            // ignore KEY_DOWN and KEY_REPEAT event as flag is already set to down
-            return 0;
-        }
-        else if (is_keycode(input, KEY_LEFTCTRL))
+            output[0] = esc_down;
+            output[1] = esc_up;
+            return 2;
+
+        case KEY_LEFTCTRL:
             // ignore this as CAPS held will triggers leftctrl key event
             return 0;
-        else if (is_keycode(input, KEY_ESC))
-        {
+
+        case KEY_ESC:
             // convert CAPSLOCK + ESC to actual CAPSLOCK signal
             output[0] = *input;
-            output[0].code = KEY_CAPSLOCK;
+            output.code = KEY_CAPSLOCK;
             esc_give_up = 1;
             return 1;
+
+        default: ; //This is an empty statement.
+            short k = 0;
+
+            if (!esc_give_up && input->value)
+            {
+                // treat this as helding ctrl
+                esc_give_up = 1;
+                output[k++] = ctrl_down;
+            }
+
+            output[k++] = *input;
+            return k;
         }
-
-        int k = 0;
-
-        if (!esc_give_up && input->value)
-        {
-            // treat this as helding ctrl
-            esc_give_up = 1;
-            output[k++] = ctrl_down;
-        }
-
-        output[k++] = *input;
-        return k;
     }
 
     else if (eq_keydown(input, KEY_CAPSLOCK))
@@ -210,27 +210,27 @@ int eventmap(const struct input_event *input, struct input_event output[]) {
             }
         }
 
-        if (blocking_mode == 2 && !is_keycode(input, KEY_LEFTMETA)) {
+        if (blocking_mode == 2) {
             // if modifier key is pressed, not inject meta yet (only react to non-modifier key)
-            short k = 0;
             switch (input->code)
             {
-                case KEY_LEFTSHIFT:
-                case KEY_RIGHTSHIFT:
-                case KEY_LEFTALT:
-                case KEY_RIGHTALT:
-                case KEY_LEFTMETA:
-                case KEY_RIGHTMETA:
-                case KEY_LEFTCTRL:
-                case KEY_RIGHTCTRL:
-                    break;
-                default:
-                    // pass through by injecting a super_L press
-                    if (blocking_mode2_in_keycombo == 0) // only inject when necessary
-                        output[k++] = meta_down;
-                    output[k++] = *input;
-                    blocking_mode2_in_keycombo = 1;
-                    return k;
+            case KEY_LEFTSHIFT:
+            case KEY_RIGHTSHIFT:
+            case KEY_LEFTALT:
+            case KEY_RIGHTALT:
+            case KEY_LEFTMETA:
+            case KEY_RIGHTMETA:
+            case KEY_LEFTCTRL:
+            case KEY_RIGHTCTRL:
+                break;
+            default: ; //This is an empty statement.
+                short k = 0;
+                // pass through by injecting a super_L press
+                if (blocking_mode2_in_keycombo == 0) // only inject when necessary
+                    output[k++] = meta_down;
+                output[k++] = *input;
+                blocking_mode2_in_keycombo = 1;
+                return k;
             }
         }
     }
@@ -279,8 +279,9 @@ int eventmap_loop(const char *devnode) {
                                            &udev) < 0)
         goto teardown_grab;
 
+    struct input_event input;
+    struct input_event output[4];
     for (;;) {
-        struct input_event input;
         int rc = libevdev_next_event(
             dev, LIBEVDEV_READ_FLAG_NORMAL | LIBEVDEV_READ_FLAG_BLOCKING,
             &input);
@@ -294,7 +295,6 @@ int eventmap_loop(const char *devnode) {
         if (rc != LIBEVDEV_READ_STATUS_SUCCESS)
             break;
 
-        struct input_event output[2];
         for (int i = 0, k = eventmap(&input, output); i != k; ++i) {
             if (libevdev_uinput_write_event(
                     udev, output[i].type, output[i].code, output[i].value) < 0)
