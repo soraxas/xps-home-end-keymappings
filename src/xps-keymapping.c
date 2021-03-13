@@ -109,7 +109,7 @@ int eventmap(const struct input_event *input, struct input_event output[]) {
         case KEY_ESC:
             // convert CAPSLOCK + ESC to actual CAPSLOCK signal
             output[0] = *input;
-            output.code = KEY_CAPSLOCK;
+            output->code = KEY_CAPSLOCK;
             esc_give_up = 1;
             return 1;
 
